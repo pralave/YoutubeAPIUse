@@ -10,14 +10,15 @@ class Query():
         
         
     def queries(self):
-        if self.feed_id == 1:
-            information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/top_rated?max-results=%d&time=%s" %(self.max_results,self.time))
-        elif self.feed_id == 2:
-            information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites?max-results=%d&time=%s" %(self.max_results,self.time))
-        elif self.feed_id == 3:
-            information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?max-results=%d&time=%s" %(self.max_results,self.time))
-        else :
-            print 'input feed id is wrong'
+        try:
+            if self.feed_id == 1:
+                information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/top_rated?max-results=%d&time=%s" %(self.max_results,self.time))
+            elif self.feed_id == 2:
+                information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites?max-results=%d&time=%s" %(self.max_results,self.time))
+            elif self.feed_id == 3:
+                information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?max-results=%d&time=%s" %(self.max_results,self.time))
+        finally :
+            print 'input feed id is wrong.Try again'
             
         root = md.parse(information)
         entries = root.getElementsByTagName('entry')
@@ -33,28 +34,33 @@ class Query():
 
         for a,t,f,v in zip(authorNames,title,favCount,viewCount):
             videoData = Video(t,v,f)
-            #userData = User(a)
-            print a
-            print videoData #,userData
+            print 'Uploader name = %s'%(a)
+            userData = User(a)
+            
+            print videoData,userData
             
 
     
 class User(Query):
     def __init__(self,author_name):
         self.author_name = author_name.replace(' ','').upper()
-        author_info = urllib.urlopen('http://gdata.youtube.com/feeds/api/users/%s' %(self.author_name))
-        author_root = md.parse(author_info)
-        entries = author_root.getElementsByTagName('entry')
-        stats = entries[0].getElementsByTagName('yt:statistics')
-        self.subscribersCount = stats[0].getAttribute('subscriberCount')
-        self.totalUploadViews = stats[0].getAttribute('totalUploadViews')
+        try:
+            author_info = urllib.urlopen('http://gdata.youtube.com/feeds/api/users/%s' %(self.author_name))
+            author_root = md.parse(author_info)
+            entries = author_root.getElementsByTagName('entry')
+            stats = entries[0].getElementsByTagName('yt:statistics')
+            self.subscribersCount = stats[0].getAttribute('subscriberCount')
+            self.totalUploadViews = stats[0].getAttribute('totalUploadViews')
+        except Exception:
+            pass
+        
 
-    
-    
 
     def __str__(self):
-        return 'number of subscribers = {}\nTotal upload Views {}\n'.format(self.subscribersCount,self.totalUploadViews)
-
+        try:
+            return 'number of subscribers = {}\nTotal upload Views {}\n'.format(self.subscribersCount,self.totalUploadViews)
+        except AttributeError:
+            return 'no user data available'
 
 class Video(User):
     def __init__(self,title,viewCount,favCount):
@@ -67,17 +73,26 @@ class Video(User):
         
 
 if __name__== '__main__':
-    feed_id = int(raw_input('''1) Top Rated
-                               2) Top Favorite
-                               3) Most Viewed
+    while True:
+        try:
+            feed_id = int(raw_input('''1) Top Rated
+2) Top Favorite
+3) Most Viewed
 
-                    choose your type(1 or 2 or 3)  '''))
+choose your type(1 or 2 or 3)  '''))
+            break
+        except Exception:
+            print 'Incorrect Input. Please enter 1 or 2 or 3'
+    while True:        
+        try:
+            time = str(raw_input('''1) today
+2) this_week
+3) this_month
 
-    time = raw_input('''1) today
-                        2) this_week
-                        3) this_month
-
-                    choose your time  ''')
+choose your time  '''))
+            break
+        except Exception:
+            print 'Try again and please insert correct Input from above options'
 
     max_results = int(raw_input('input your maximum results  '))
     
