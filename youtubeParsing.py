@@ -1,5 +1,7 @@
 from xml.dom import minidom as md
+from sys import exit
 import urllib
+
 
 
 class Query():
@@ -17,10 +19,12 @@ class Query():
                 information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites?max-results=%d&time=%s" %(self.max_results,self.time))
             elif self.feed_id == 3:
                 information = urllib.urlopen("http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?max-results=%d&time=%s" %(self.max_results,self.time))
-        finally :
+            root = md.parse(information)
+
+        except Exception :
             print 'input feed id is wrong.Try again'
+            exit(0)
             
-        root = md.parse(information)
         entries = root.getElementsByTagName('entry')
         favCount,viewCount,authorNames,title =[],[],[],[]
         
